@@ -1,0 +1,3 @@
+[submodule ".\\test-fixtures\\sample-data-lowrance"]
+	path = .\\test-fixtures\\sample-data-lowrance
+	url = https://github.com/opensounder/sample-data-lowrance.git

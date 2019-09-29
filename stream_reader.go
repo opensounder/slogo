@@ -21,9 +21,9 @@ func NewDecoder(r io.Reader, header Header) Decoder {
 func (d *slDecoder) Read(p []byte) (int, error) {
 	n, err := d.r.Read(p)
 	if err != nil {
-		return n, nil
+		return n, err
 	}
-
+	return n, nil
 }
 
 //Decode implements the Decode method

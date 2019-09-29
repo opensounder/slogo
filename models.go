@@ -7,3 +7,7 @@ type Header struct {
 	Blocksize int16
 	Reserved1 int16
 }
+
+type Frame struct {
+	offset int16
+}

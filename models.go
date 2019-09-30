@@ -2,12 +2,42 @@ package slogo
 
 //Header represents the log file header
 type Header struct {
-	Format    int16
-	Version   int16
-	Blocksize int16
-	Reserved1 int16
+	Format    uint16
+	Version   uint16
+	Blocksize uint16
+	Reserved1 uint16
 }
 
 type Frame struct {
-	offset int16
+	Offset        uint32
+	Primary       uint32
+	Secondary     uint32
+	Down          uint32
+	LeftSide      uint32
+	RightSide     uint32
+	Composite     uint32
+	Blocksize     uint16
+	LastBlocksize uint16
+	Channel       uint16
+	Packetsize    uint16
+	Frameindex    uint32
+	UpperLimit    float32
+	LowerLimit    float32
+	Reserved1     uint16
+	Frequency     uint8
+	_             [13]uint8
+	WaterDepth    float32
+	KeelDepth     float32
+	_             [28]uint8
+	GpsSpeed      float32
+	Temperature   float32
+	LonEncoded    uint32
+	LatEncoded    uint32
+	WaterSpeed    float32
+	COG           float32
+	Altitude      float32
+	Heading       float32
+	Flags         uint16
+	_             [6]uint8
+	Time          uint32
 }

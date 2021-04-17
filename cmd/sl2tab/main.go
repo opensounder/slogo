@@ -60,9 +60,9 @@ func main() {
 	last_point := slogo.Point{}
 
 	w := tabwriter.NewWriter(os.Stdout, 5, 4, 1, ' ', tabwriter.AlignRight|tabwriter.Debug)
-	record := []string{"Time", "Skipped", "Kts", "Kph", "Feet", "Meter", "COG", "Latitude", "Longitude", "URL", ""}
+	record := []string{"Time", "Diff", "Skipped", "Kts", "Kph", "Feet", "Meter", "COG", "Latitude", "Longitude", "URL", ""}
 	fmt.Fprintln(w, strings.Join(record, "\t"))
-
+	var last_time uint32
 	for err == nil && (count == 0 || fc < count) {
 		err = d.DecodeV2(&f)
 		if err == io.EOF {
@@ -74,8 +74,12 @@ func main() {
 		p := f.Location()
 		lo, la := p.GeoLatLon()
 		if p != last_point { //only print if moved
-			_, err = fmt.Fprintf(w, "%d\t%d\t%.2f\t%.2f\t%.2f\t%.2f\t%.0f\t%f\t%f\t%s\t\n",
+			if last_time == 0 {
+				last_time = f.Time
+			}
+			_, err = fmt.Fprintf(w, "%d\t%d\t%d\t%.2f\t%.2f\t%.2f\t%.2f\t%.0f\t%f\t%f\t%s\t\n",
 				f.Time,
+				f.Time-last_time,
 				skipped, //skipped number of frames
 				f.GpsSpeed,
 				f.GpsSpeed.ToKph(),
@@ -87,6 +91,7 @@ func main() {
 			)
 			check(err)
 			fc++
+			last_time = f.Time
 			last_point = p
 			skipped = 0
 		} else {

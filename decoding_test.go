@@ -109,7 +109,7 @@ func Test_slDecoder_Decode(t *testing.T) {
 
 func TestLongitudeDD(t *testing.T) {
 	type args struct {
-		lon uint32
+		lon int32
 	}
 	tests := []struct {
 		name string
@@ -118,20 +118,24 @@ func TestLongitudeDD(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 		{
+			name: "a",
 			args: args{1373465},
 			want: 12.379552312136807,
 		},
 		{
+			name: "b",
 			args: args{0},
 			want: 0,
 		},
 		{
+			name: "c",
 			args: args{1},
 			want: 9.013372974292616e-06,
 		},
 		{
-			args: args{math.MaxUint32},
-			want: 38712.14214222366,
+			name: "max",
+			args: args{math.MaxInt32},
+			want: 19356.071066605145,
 		},
 	}
 	for _, tt := range tests {
@@ -145,7 +149,7 @@ func TestLongitudeDD(t *testing.T) {
 
 func TestLatitude(t *testing.T) {
 	type args struct {
-		lat uint32
+		lat int32
 	}
 	tests := []struct {
 		name string

@@ -3,14 +3,7 @@ package slogo
 import (
 	"encoding/binary"
 	"io"
-	"math"
 	"os"
-)
-
-const (
-	EarthRadius    = 6356752.3142
-	RadConversion  = 180 / math.Pi
-	FeetConversion = 0.3048
 )
 
 //Decoder is the general interface
@@ -81,27 +74,4 @@ func (d *slDecoder) DecodeV2(frame *FrameV2) error {
 	}
 	// log.Printf("Packetsize: %d, Read: %d\n", frame.Packetsize, n)
 	return err
-}
-
-func Longitude(lon uint32) float64 {
-	return float64(lon) / EarthRadius * RadConversion
-}
-
-func Latitude(lat uint32) float64 {
-	temp := float64(lat) / EarthRadius
-	temp = math.Exp(temp)
-	temp = (2 * math.Atan(temp)) - (math.Pi / 2)
-	return temp * RadConversion
-}
-
-func RadToDeg(data float32) float32 {
-	return data * RadConversion
-}
-
-func FeetToMeter(data float32) float32 {
-	return data * FeetConversion
-}
-
-func KnotsToKph(data float32) float32 {
-	return data * 1.85200
 }

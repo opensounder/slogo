@@ -2,6 +2,22 @@ package slogo
 
 import "fmt"
 
+type Speed float32
+type Depth float32
+type Radians float32
+
+func (s Speed) ToKph() float32 {
+	return float32(s) * 1.85200
+}
+
+func (d Depth) ToMeters() float32 {
+	return float32(d) * 0.3048
+}
+
+func (r Radians) ToDeg() float32 {
+	return RadToDeg(float32(r))
+}
+
 //Header represents the log file header
 type Header struct {
 	Format    uint16
@@ -10,12 +26,9 @@ type Header struct {
 	Reserved1 uint16
 }
 
-func (h *Header) NewFrame() (interface{}, error) {
-	switch h.Format {
-	case 2:
-		return &FrameV2{}, nil
-	}
-	return nil, fmt.Errorf("invalid header format")
+type Frame interface {
+	Location() Point
+	GpsSpeed() Speed
 }
 
 type FrameV2 struct {
@@ -36,17 +49,17 @@ type FrameV2 struct {
 	Reserved1     uint16
 	Frequency     uint8
 	_             [13]uint8
-	WaterDepth    float32
-	KeelDepth     float32
+	WaterDepth    Depth
+	KeelDepth     Depth
 	_             [28]uint8
-	GpsSpeed      float32
+	GpsSpeed      Speed
 	Temperature   float32
-	LonEncoded    uint32
-	LatEncoded    uint32
-	WaterSpeed    float32
-	COG           float32
+	LonEncoded    int32
+	LatEncoded    int32
+	WaterSpeed    Speed
+	COG           Radians
 	Altitude      float32
-	Heading       float32
+	Heading       Radians
 	Flags         uint16
 	_             [6]uint8
 	Time          uint32
@@ -57,14 +70,19 @@ func (f *FrameV2) Location() Point {
 }
 
 type Point struct {
-	Lat uint32
-	Lon uint32
+	LatEncoded int32
+	LonEncoded int32
 }
 
 func (p Point) GeoLatLon() (float64, float64) {
-	return Latitude(p.Lat), Longitude(p.Lon)
+	return Latitude(p.LatEncoded), Longitude(p.LonEncoded)
 }
 
-type Frame interface {
-	Location() Point
+func (p Point) ToGMapsURL(zoom byte) string {
+	la, lo := p.GeoLatLon()
+	return fmt.Sprintf("https://maps.google.com/maps?q=@%f,%f&z=%d", la, lo, zoom)
+}
+
+func (p Point) String() string {
+	return fmt.Sprintf("<%d, %d>", p.LatEncoded, p.LonEncoded)
 }

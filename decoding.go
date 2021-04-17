@@ -15,7 +15,7 @@ const (
 
 //Decoder is the general interface
 type Decoder interface {
-	Decode() (*Frame, error)
+	DecodeV2(frame *FrameV2) error
 }
 
 type slDecoder struct {
@@ -66,13 +66,21 @@ func NewDecoder(r io.Reader, version, blocksize uint16) Decoder {
 }
 
 //Decode implements the Decode method
-func (d *slDecoder) Decode() (*Frame, error) {
+func (d *slDecoder) DecodeV2(frame *FrameV2) error {
 
-	frame := Frame{}
-
-	err := binary.Read(d.r, binary.LittleEndian, &frame)
+	err := binary.Read(d.r, binary.LittleEndian, frame)
+	if err != nil {
+		return err
+	}
 	// log.Printf("Offset in hex %x", frame.Offset)
-	return &frame, err
+	//TODO Read packet.
+	ping := make([]byte, int(frame.Packetsize))
+	_, err = d.r.Read(ping)
+	if err != nil {
+		return err
+	}
+	// log.Printf("Packetsize: %d, Read: %d\n", frame.Packetsize, n)
+	return err
 }
 
 func Longitude(lon uint32) float64 {
@@ -92,4 +100,8 @@ func RadToDeg(data float32) float32 {
 
 func FeetToMeter(data float32) float32 {
 	return data * FeetConversion
+}
+
+func KnotsToKph(data float32) float32 {
+	return data * 1.85200
 }

@@ -1,11 +1,17 @@
 package slogo
 
 import (
+	"fmt"
 	"math"
 	"os"
-	"reflect"
 	"testing"
 )
+
+const float64Epsilon = 1e-9
+
+func almostEqual(a, b float64) bool {
+	return math.Abs(a-b) <= float64Epsilon
+}
 
 func Test_slDecoder_Decode(t *testing.T) {
 	type fields struct {
@@ -16,11 +22,10 @@ func Test_slDecoder_Decode(t *testing.T) {
 	filename := "./test-fixtures/sample-data-lowrance/Elite_4_Chirp/bigger.sl2"
 	logfile, header, err := OpenLog(filename)
 
-	defer logfile.Close()
-
 	if err != nil {
 		t.Errorf("Could not open file %s", filename)
 	}
+	defer logfile.Close()
 
 	if header.Format != 2 {
 		t.Errorf("header.Format = %v, want %v", header.Format, 2)
@@ -31,7 +36,7 @@ func Test_slDecoder_Decode(t *testing.T) {
 	tests := []struct {
 		name    string
 		fields  fields
-		want    *Frame
+		want    *FrameV2
 		wantLon float64
 		wantLat float64
 		wantCog float32
@@ -46,7 +51,7 @@ func Test_slDecoder_Decode(t *testing.T) {
 				r:         logfile,
 			},
 			wantErr: false,
-			want: &Frame{
+			want: &FrameV2{
 				Offset:      8,
 				Primary:     8,
 				Blocksize:   2064,
@@ -74,7 +79,8 @@ func Test_slDecoder_Decode(t *testing.T) {
 				version:   tt.fields.version,
 				blocksize: tt.fields.blocksize,
 			}
-			got, err := d.Decode()
+			var got FrameV2
+			err := d.DecodeV2(&got)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("slDecoder.Decode() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -83,14 +89,16 @@ func Test_slDecoder_Decode(t *testing.T) {
 			// logLongAtOffset(logfile, 8+140)
 			// log.Printf("COG in degrees %f", RadToDeg(got.COG))
 			// log.Printf("Altitude in meters %f", FeetToMeter(got.Altitude))
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("slDecoder.Decode() =\n %+v,\n want\n %+v", got, tt.want)
+			gots := fmt.Sprintf("%+v", &got)
+			wants := fmt.Sprintf("%+v", tt.want)
+			if gots != wants {
+				t.Errorf("slDecoder.Decode() =\n %+v,\n want\n %+v", gots, wants)
 			}
-			lon := LongitudeDD(got.LonEncoded)
+			lon := Longitude(got.LonEncoded)
 			if lon != tt.wantLon {
 				t.Errorf("Longitude() = %v, wants %v", lon, tt.wantLon)
 			}
-			lat := LatitudeDD(got.LatEncoded)
+			lat := Latitude(got.LatEncoded)
 			if lat != tt.wantLat {
 				t.Errorf("Latitude() = %v, wants %v", lat, tt.wantLat)
 			}
@@ -123,12 +131,12 @@ func TestLongitudeDD(t *testing.T) {
 		},
 		{
 			args: args{math.MaxUint32},
-			want: 9.013372974292616e-06,
+			want: 38712.14214222366,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := LongitudeDD(tt.args.lon); got != tt.want {
+			if got := Longitude(tt.args.lon); !almostEqual(got, tt.want) {
 				t.Errorf("LongitudeDD() = %v, want %v", got, tt.want)
 			}
 		})
@@ -151,16 +159,16 @@ func TestLatitude(t *testing.T) {
 		},
 		{
 			args: args{1},
-			want: 1.573130350429608e-07,
+			want: 9.013372970355275e-06,
 		},
 		{
 			args: args{8180800},
-			want: 1.031995718759616,
+			want: 59.12899916049587,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := Latitude(tt.args.lat); got != tt.want {
+			if got := Latitude(tt.args.lat); !almostEqual(got, tt.want) {
 				t.Errorf("Latitude() = %v, want %v", got, tt.want)
 			}
 		})

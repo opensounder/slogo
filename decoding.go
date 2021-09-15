@@ -8,70 +8,53 @@ import (
 
 //Decoder is the general interface
 type Decoder interface {
-	DecodeV2(frame *FrameV2) error
-}
-
-type slDecoder struct {
-	r         io.Reader
-	version   uint16
-	blocksize uint16
+	Next(FrameReader) error
 }
 
 //OpenLog is a function
-func OpenLog(path string) (*os.File, *Header, error) {
-	logfile, err := os.Open(path)
+func OpenLog(path string) (logfile *os.File, header Header, err error) {
+	logfile, err = os.Open(path)
+	header = Header{}
 	if err != nil {
-		return nil, nil, err
+		return
 	}
 
-	header, err := ReadHeader(logfile)
+	header, err = ReadHeader(logfile)
 	if err != nil {
-		return nil, nil, err
+		logfile.Close()
+		logfile = nil
+		return
 	}
 
-	return logfile, header, nil
+	return
 }
 
 //ReadHeader is another function
-func ReadHeader(reader io.Reader) (*Header, error) {
-	header := Header{}
-	if err := binary.Read(reader, binary.LittleEndian, &header.Format); err != nil {
-		return nil, err
-	}
+func ReadHeader(r io.Reader) (header Header, err error) {
+	header = Header{}
+	err = binary.Read(r, binary.LittleEndian, &header)
+	return
+}
 
-	if err := binary.Read(reader, binary.LittleEndian, &header.Version); err != nil {
-		return nil, err
-	}
+type slDecoder struct {
+	r      io.Reader
+	header *Header
+}
 
-	if err := binary.Read(reader, binary.LittleEndian, &header.Blocksize); err != nil {
-		return nil, err
+func OpenDecoder(filename string) (*os.File, Decoder, error) {
+	logfile, header, err := OpenLog(filename)
+	if err != nil {
+		return logfile, nil, err
 	}
-
-	if err := binary.Read(reader, binary.LittleEndian, &header.Reserved1); err != nil {
-		return nil, err
-	}
-	return &header, nil
+	d := NewDecoder(logfile, header)
+	return logfile, d, nil
 }
 
 //NewDecoder creates a new Decoder instance
-func NewDecoder(r io.Reader, version, blocksize uint16) Decoder {
-	return &slDecoder{r: r, version: version, blocksize: blocksize}
+func NewDecoder(r io.Reader, header Header) Decoder {
+	return &slDecoder{r: r, header: &header}
 }
 
-//Decode implements the Decode method
-func (d *slDecoder) DecodeV2(frame *FrameV2) error {
-
-	err := binary.Read(d.r, binary.LittleEndian, frame)
-	if err != nil {
-		return err
-	}
-	// log.Printf("Offset in hex %x", frame.Offset)
-	//TODO Read packet.
-	ping := make([]byte, int(frame.Packetsize))
-	_, err = d.r.Read(ping)
-	if err != nil {
-		return err
-	}
-	// log.Printf("Packetsize: %d, Read: %d\n", frame.Packetsize, n)
-	return err
+func (d *slDecoder) Next(f FrameReader) error {
+	return f.Read(d.r, d.header)
 }

@@ -48,7 +48,7 @@ func main() {
 	fmt.Printf("header: %+v\n", header)
 
 	d := slogo.NewDecoder(logfile, header.Version, header.Blocksize)
-	var f slogo.FrameV2
+	var f slogo.FrameF2
 	check(err)
 	if count > 0 {
 		fmt.Printf("Getting %d frames\n\n", count)

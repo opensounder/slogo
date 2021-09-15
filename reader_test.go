@@ -20,7 +20,7 @@ func TestReadLogfile(t *testing.T) {
 		},
 		{
 			args: args{
-				path: "./test-fixtures/sample-data-lowrance/Elite_4_Chirp/bigger.sl2",
+				path: "./testdata/sample-data-lowrance/Elite_4_Chirp/bigger.sl2",
 			},
 			wantErr: false,
 		},

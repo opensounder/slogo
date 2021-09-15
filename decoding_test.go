@@ -15,11 +15,10 @@ func almostEqual(a, b float64) bool {
 
 func Test_slDecoder_Decode(t *testing.T) {
 	type fields struct {
-		r         *os.File
-		version   uint16
-		blocksize uint16
+		r      *os.File
+		header *Header
 	}
-	filename := "./test-fixtures/sample-data-lowrance/Elite_4_Chirp/bigger.sl2"
+	filename := "./testdata/sample-data-lowrance/Elite_4_Chirp/bigger.sl2"
 	logfile, header, err := OpenLog(filename)
 
 	if err != nil {
@@ -36,7 +35,7 @@ func Test_slDecoder_Decode(t *testing.T) {
 	tests := []struct {
 		name    string
 		fields  fields
-		want    *FrameV2
+		want    *FrameF2
 		wantLon float64
 		wantLat float64
 		wantCog float32
@@ -46,12 +45,11 @@ func Test_slDecoder_Decode(t *testing.T) {
 		// TODO: Add test cases.
 		{
 			fields: fields{
-				version:   header.Version,
-				blocksize: header.Blocksize,
-				r:         logfile,
+				header: &header,
+				r:      logfile,
 			},
 			wantErr: false,
-			want: &FrameV2{
+			want: &FrameF2{
 				Offset:      8,
 				Primary:     8,
 				Blocksize:   2064,
@@ -75,16 +73,16 @@ func Test_slDecoder_Decode(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			d := &slDecoder{
-				r:         tt.fields.r,
-				version:   tt.fields.version,
-				blocksize: tt.fields.blocksize,
+				r:      tt.fields.r,
+				header: tt.fields.header,
 			}
-			var got FrameV2
-			err := d.DecodeV2(&got)
+			var got FrameF2
+			err := d.Next(&got)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("slDecoder.Decode() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+
 			// logOffset(logfile)
 			// logLongAtOffset(logfile, 8+140)
 			// log.Printf("COG in degrees %f", RadToDeg(got.COG))

@@ -1,6 +1,9 @@
 package slogo
 
-import "fmt"
+import (
+	"fmt"
+	"io"
+)
 
 type Speed float32
 type Depth float32
@@ -16,57 +19,6 @@ func (d Depth) ToMeters() float32 {
 
 func (r Radians) ToDeg() float32 {
 	return RadToDeg(float32(r))
-}
-
-//Header represents the log file header
-type Header struct {
-	Format    uint16
-	Version   uint16
-	Blocksize uint16
-	Reserved1 uint16
-}
-
-type Frame interface {
-	Location() Point
-	GpsSpeed() Speed
-}
-
-type FrameV2 struct {
-	Offset        uint32
-	Primary       uint32
-	Secondary     uint32
-	Down          uint32
-	LeftSide      uint32
-	RightSide     uint32
-	Composite     uint32
-	Blocksize     uint16
-	LastBlocksize uint16
-	Channel       uint16
-	Packetsize    uint16
-	Frameindex    uint32
-	UpperLimit    float32
-	LowerLimit    float32
-	Reserved1     uint16
-	Frequency     uint8
-	_             [13]uint8
-	WaterDepth    Depth
-	KeelDepth     Depth
-	_             [28]uint8
-	GpsSpeed      Speed
-	Temperature   float32
-	LonEncoded    int32
-	LatEncoded    int32
-	WaterSpeed    Speed
-	COG           Radians
-	Altitude      float32
-	Heading       Radians
-	Flags         uint16
-	_             [6]uint8
-	Time          uint32
-}
-
-func (f *FrameV2) Location() Point {
-	return Point{f.LatEncoded, f.LonEncoded}
 }
 
 type Point struct {
@@ -85,4 +37,21 @@ func (p Point) ToGMapsURL(zoom byte) string {
 
 func (p Point) String() string {
 	return fmt.Sprintf("<%d, %d>", p.LatEncoded, p.LonEncoded)
+}
+
+//Header represents the SLx file header. Same for all formats
+type Header struct {
+	Format    uint16
+	Version   uint16
+	Blocksize uint16
+	Reserved1 uint16
+}
+
+type Frame interface {
+	FrameReader
+	Location() Point
+}
+
+type FrameReader interface {
+	Read(r io.Reader, header *Header) error
 }

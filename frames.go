@@ -2,6 +2,7 @@ package slogo
 
 import (
 	"encoding/binary"
+	"fmt"
 	"io"
 )
 
@@ -44,6 +45,9 @@ func (f *FrameF2) Location() Point {
 }
 
 func (f *FrameF2) Read(r io.Reader, header *Header) error {
+	if header.Format != 2 {
+		return fmt.Errorf("format %v files is not supported", header.Format)
+	}
 	err := binary.Read(r, binary.LittleEndian, f)
 	if err != nil {
 		return err

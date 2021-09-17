@@ -9,8 +9,8 @@ import (
 
 const float64Epsilon = 1e-9
 
-func almostEqual(a, b float64) bool {
-	return math.Abs(a-b) <= float64Epsilon
+func almostEqual(a, b, epsilon float64) bool {
+	return math.Abs(a-b) <= epsilon
 }
 
 func Test_slDecoder_Decode(t *testing.T) {
@@ -101,78 +101,6 @@ func Test_slDecoder_Decode(t *testing.T) {
 				t.Errorf("Latitude() = %v, wants %v", lat, tt.wantLat)
 			}
 			//TODO: test cog and alt conversion
-		})
-	}
-}
-
-func TestLongitudeDD(t *testing.T) {
-	type args struct {
-		lon int32
-	}
-	tests := []struct {
-		name string
-		args args
-		want float64
-	}{
-		// TODO: Add test cases.
-		{
-			name: "a",
-			args: args{1373465},
-			want: 12.379552312136807,
-		},
-		{
-			name: "b",
-			args: args{0},
-			want: 0,
-		},
-		{
-			name: "c",
-			args: args{1},
-			want: 9.013372974292616e-06,
-		},
-		{
-			name: "max",
-			args: args{math.MaxInt32},
-			want: 19356.071066605145,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := Longitude(tt.args.lon); !almostEqual(got, tt.want) {
-				t.Errorf("LongitudeDD() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestLatitude(t *testing.T) {
-	type args struct {
-		lat int32
-	}
-	tests := []struct {
-		name string
-		args args
-		want float64
-	}{
-		// TODO: Add test cases.
-		{
-			args: args{0},
-			want: 0,
-		},
-		{
-			args: args{1},
-			want: 9.013372970355275e-06,
-		},
-		{
-			args: args{8180800},
-			want: 59.12899916049587,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := Latitude(tt.args.lat); !almostEqual(got, tt.want) {
-				t.Errorf("Latitude() = %v, want %v", got, tt.want)
-			}
 		})
 	}
 }

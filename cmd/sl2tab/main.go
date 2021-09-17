@@ -47,9 +47,8 @@ func main() {
 	defer logfile.Close()
 	fmt.Printf("header: %+v\n", header)
 
-	d := slogo.NewDecoder(logfile, header.Version, header.Blocksize)
-	var f slogo.FrameF2
-	check(err)
+	d := slogo.NewDecoder(logfile, header)
+
 	if count > 0 {
 		fmt.Printf("Getting %d frames\n\n", count)
 	} else {
@@ -63,8 +62,9 @@ func main() {
 	record := []string{"Time", "Diff", "Skipped", "Kts", "Kph", "Feet", "Meter", "COG", "Latitude", "Longitude", "URL", ""}
 	fmt.Fprintln(w, strings.Join(record, "\t"))
 	var last_time uint32
+	var f slogo.FrameF2
 	for err == nil && (count == 0 || fc < count) {
-		err = d.DecodeV2(&f)
+		err = d.Next(&f)
 		if err == io.EOF {
 			break
 		} else if err != nil {

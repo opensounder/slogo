@@ -39,6 +39,40 @@ func (p Point) String() string {
 	return fmt.Sprintf("<%d, %d>", p.LatEncoded, p.LonEncoded)
 }
 
+func distance(a, b Point) float64 {
+	lat1, lon1 := a.GeoLatLon()
+	lat2, lon2 := b.GeoLatLon()
+	return geoDistance(lat1, lon1, lat2, lon2)
+}
+
+func minPoint(a, b Point) Point {
+	return Point{
+		LatEncoded: min(a.LatEncoded, b.LatEncoded),
+		LonEncoded: min(a.LonEncoded, b.LonEncoded),
+	}
+}
+
+func maxPoint(a, b Point) Point {
+	return Point{
+		LatEncoded: max(a.LatEncoded, b.LatEncoded),
+		LonEncoded: max(a.LonEncoded, b.LonEncoded),
+	}
+}
+
+func min(a, b int32) int32 {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func max(a, b int32) int32 {
+	if a > b {
+		return a
+	}
+	return b
+}
+
 //Header represents the SLx file header. Same for all formats
 type Header struct {
 	Format    uint16

@@ -12,4 +12,4 @@ test:
 
 .PHONY: example1
 example1:
-	go run ./cmd/sl2tab/ -count 20 "./testdata/sample-data-lowrance/Elite_4_Chirp\Chart 05_11_2018 [0].sl2"
+	go run ./cmd/sl2tab/ -count 20 "./testdata/sample-data-lowrance/Elite_4_Chirp/Chart 05_11_2018 [0].sl2"

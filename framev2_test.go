@@ -13,9 +13,9 @@ func Test_FrameV2_Many(t *testing.T) {
 		wantErr  bool
 	}{
 		{"testdata/sample-data-lowrance/Elite_4_Chirp/small.sl2", 4017, false},
-		{"testdata/sample-data-lowrance/Elite_4_Chirp/version-1.sl2", 7, false},
-		{"testdata/sample-data-lowrance/Elite_4_Chirp/bigger.sl2", 5, false},
-		{"testdata/sample-data-lowrance/Elite_4_Chirp/Chart 05_11_2018 [0].sl2", 5, false},
+		// {"testdata/sample-data-lowrance/Elite_4_Chirp/version-1.sl2", 7, false},
+		// {"testdata/sample-data-lowrance/Elite_4_Chirp/bigger.sl2", 5, false},
+		// {"testdata/sample-data-lowrance/Elite_4_Chirp/Chart 05_11_2018 [0].sl2", 5, false},
 	}
 
 	for _, tt := range tests {
@@ -30,6 +30,8 @@ func Test_FrameV2_Many(t *testing.T) {
 			var offset uint32 = 0
 			var index uint32 = 0
 			count := 0
+			var bottom_left Point
+			var top_right Point
 			for err == nil {
 				err = decoder.Next(&f)
 				if err == io.EOF {
@@ -48,9 +50,16 @@ func Test_FrameV2_Many(t *testing.T) {
 					t.Errorf("index got %v, want >= %v", f.Frameindex, index)
 					break
 				}
+				loc := f.Location()
+				if bottom_left.LatEncoded == 0 || loc.LatEncoded < bottom_left.LatEncoded {
+					bottom_left.LatEncoded = loc.LatEncoded
+				}
+				bottom_left = minPoint(bottom_left, loc)
+				top_right = maxPoint(top_right, loc)
 				offset = f.Offset
 				index = f.Frameindex
 			}
+
 			if count != tt.count {
 				t.Errorf("count got, %v wants %v", count, tt.count)
 			}

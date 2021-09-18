@@ -5,7 +5,7 @@ package slogo
 import "math"
 
 const (
-	earthRadius = 6356752.3142
+	// earthRadius = 6356752.3142
 	// r_major             = 6378137.000 //Equatorial Radius, WGS84
 	r_major             = 6356752.3142 // navico uses polar radius
 	r_minor             = 6356752.3142
@@ -32,12 +32,12 @@ func KnotsToKph(data float32) float32 {
 
 // Convert Lowrance encoded Longitude to decimal degrees
 func Longitude(x int32) float64 {
-	return deg(float64(x) / earthRadius)
+	return deg(float64(x) / r_major)
 }
 
 // Convert Lowrance encoded Latitude to decimal degrees. Somewhat expencive procedure.
 func Latitude(y int32) float64 {
-	temp := float64(y) / earthRadius
+	temp := float64(y) / r_major
 	temp = math.Exp(temp)
 	temp = (2 * math.Atan(temp)) - halfPi
 	return deg(temp)
@@ -74,28 +74,6 @@ func merc_x(lon float64) int32 {
 	return int32(r_major * rad(lon))
 }
 
-func merc(lon, lat float64) (x, y int32) {
-	return merc_x(lon), merc_y(lat)
-}
-
-/*
-def merc_x(lon):
-  r_major=6356752.3142  # 6378137.000
-  return r_major*math.radians(lon)
-
-def merc_y(lat):
-  if lat>89.5:lat=89.5
-  if lat<-89.5:lat=-89.5
-  r_major=6356752.3142  # 6378137.000
-  r_minor=6356752.3142
-  temp=r_minor/r_major
-  eccent=math.sqrt(1-temp**2)
-  phi=math.radians(lat)
-  sinphi=math.sin(phi)
-  con=eccent*sinphi
-  com=eccent/2
-  con=((1.0-con)/(1.0+con))**com
-  ts=math.tan((math.pi/2-phi)/2)/con
-  y=0-r_major*math.log(ts)
-  return y
-*/
+// func merc(lon, lat float64) (x, y int32) {
+// 	return merc_x(lon), merc_y(lat)
+// }

@@ -50,14 +50,14 @@ func (f *FrameF2) Read(r io.Reader, header *Header) error {
 	}
 	err := binary.Read(r, binary.LittleEndian, f)
 	if err != nil {
-		return err
+		return err // fmt.Errorf("error reading frame header: %w", err)
 	}
 	// log.Printf("Offset in hex %x", frame.Offset)
 	//TODO Read packet.
 	ping := make([]byte, int(f.Packetsize))
 	_, err = r.Read(ping)
 	if err != nil {
-		return err
+		return fmt.Errorf("error reading frame ping: %w", err)
 	}
 	// log.Printf("Packetsize: %d, Read: %d\n", frame.Packetsize, n)
 	return err

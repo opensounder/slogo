@@ -5,14 +5,26 @@ import (
 	"io"
 )
 
+// Speed in knots
 type Speed float32
+
+// Depth in feet
 type Depth float32
+
+// Radians angle
 type Radians float32
 
+// ToKph converts speed to kilometers per hour
 func (s Speed) ToKph() float32 {
 	return float32(s) * 1.85200
 }
 
+// ToMps converts speed to meters per second
+func (s Speed) ToMps() float32 {
+	return float32(s) * 0.514444
+}
+
+// ToMeters convert depth to meters
 func (d Depth) ToMeters() float32 {
 	return float32(d) * 0.3048
 }
@@ -22,12 +34,19 @@ func (r Radians) ToDeg() float32 {
 }
 
 type Point struct {
-	LatEncoded int32
-	LonEncoded int32
+	YMerc int32
+	XMerc int32
 }
 
-func (p Point) GeoLatLon() (float64, float64) {
-	return Latitude(p.LatEncoded), Longitude(p.LonEncoded)
+func PointLatLng(lat float64, lng float64) Point {
+	return Point{
+		YMerc: merc_y(lat),
+		XMerc: merc_x(lng),
+	}
+}
+
+func (p Point) GeoLatLon() (lat float64, lng float64) {
+	return Latitude(p.YMerc), Longitude(p.XMerc)
 }
 
 func (p Point) ToGMapsURL(zoom byte) string {
@@ -36,41 +55,7 @@ func (p Point) ToGMapsURL(zoom byte) string {
 }
 
 func (p Point) String() string {
-	return fmt.Sprintf("<%d, %d>", p.LatEncoded, p.LonEncoded)
-}
-
-func distance(a, b Point) float64 {
-	lat1, lon1 := a.GeoLatLon()
-	lat2, lon2 := b.GeoLatLon()
-	return geoDistance(lat1, lon1, lat2, lon2)
-}
-
-func minPoint(a, b Point) Point {
-	return Point{
-		LatEncoded: min(a.LatEncoded, b.LatEncoded),
-		LonEncoded: min(a.LonEncoded, b.LonEncoded),
-	}
-}
-
-func maxPoint(a, b Point) Point {
-	return Point{
-		LatEncoded: max(a.LatEncoded, b.LatEncoded),
-		LonEncoded: max(a.LonEncoded, b.LonEncoded),
-	}
-}
-
-func min(a, b int32) int32 {
-	if a < b {
-		return a
-	}
-	return b
-}
-
-func max(a, b int32) int32 {
-	if a > b {
-		return a
-	}
-	return b
+	return fmt.Sprintf("<%d, %d>", p.YMerc, p.XMerc)
 }
 
 //Header represents the SLx file header. Same for all formats

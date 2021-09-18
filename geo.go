@@ -32,3 +32,9 @@ func geoDistance(lat1, lon1, lat2, lon2 float64) float64 {
 
 	return 2 * r * math.Asin(math.Sqrt(h))
 }
+
+func pointDistance(p1, p2 Point) float64 {
+	la1, lo1 := p1.GeoLatLon()
+	la2, lo2 := p2.GeoLatLon()
+	return geoDistance(la1, lo1, la2, lo2)
+}

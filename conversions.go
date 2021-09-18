@@ -15,9 +15,14 @@ const (
 	halfPi              = math.Pi / 2
 )
 
-// RadToDeg converts from radians to decimal degrees
-func RadToDeg(data float32) float32 {
-	return data * radConversion
+// deg32 converts from radians to degrees float32
+func deg32(rad float32) float32 {
+	return rad * radConversion
+}
+
+// deg64 converts from radians to degrees float64
+func deg64(rad_val float64) float64 {
+	return rad_val * radConversion
 }
 
 // FeetToMeter converts
@@ -25,14 +30,14 @@ func FeetToMeter(data float32) float32 {
 	return data * feetMeterConversion
 }
 
-// KnotsToKph converts
-func KnotsToKph(data float32) float32 {
-	return data * knotsKphConversion
-}
+// // KnotsToKph converts
+// func KnotsToKph(data float32) float32 {
+// 	return data * knotsKphConversion
+// }
 
 // Convert Lowrance encoded Longitude to decimal degrees
 func Longitude(x int32) float64 {
-	return deg(float64(x) / r_major)
+	return deg64(float64(x) / r_major)
 }
 
 // Convert Lowrance encoded Latitude to decimal degrees. Somewhat expencive procedure.
@@ -40,15 +45,12 @@ func Latitude(y int32) float64 {
 	temp := float64(y) / r_major
 	temp = math.Exp(temp)
 	temp = (2 * math.Atan(temp)) - halfPi
-	return deg(temp)
+	return deg64(temp)
 }
 
-func rad(deg_val float64) float64 {
+// rad64 converts degrees to radians float64
+func rad64(deg_val float64) float64 {
 	return deg_val / radConversion
-}
-
-func deg(rad_val float64) float64 {
-	return rad_val * radConversion
 }
 
 func merc_y(lat float64) int32 {
@@ -60,7 +62,7 @@ func merc_y(lat float64) int32 {
 	}
 	temp := r_minor / r_major
 	eccent := math.Sqrt(1 - math.Pow(temp, 2))
-	phi := rad(lat)
+	phi := rad64(lat)
 	sinphi := math.Sin(phi)
 	con := eccent * sinphi
 	com := eccent / 2
@@ -71,9 +73,11 @@ func merc_y(lat float64) int32 {
 }
 
 func merc_x(lon float64) int32 {
-	return int32(r_major * rad(lon))
+	return int32(r_major * rad64(lon))
 }
 
 // func merc(lon, lat float64) (x, y int32) {
 // 	return merc_x(lon), merc_y(lat)
 // }
+
+func has(flags, f Flags) bool { return flags&f != 0 }

@@ -14,6 +14,16 @@ type Depth float32
 // Radians angle
 type Radians float32
 
+type Flags uint16
+
+const (
+	F0 Flags = 1 << iota
+	F1
+	F2
+	F3
+	F4
+)
+
 // ToKph converts speed to kilometers per hour
 func (s Speed) ToKph() float32 {
 	return float32(s) * 1.85200
@@ -26,23 +36,16 @@ func (s Speed) ToMps() float32 {
 
 // ToMeters convert depth to meters
 func (d Depth) ToMeters() float32 {
-	return float32(d) * 0.3048
+	return FeetToMeter(float32(d))
 }
 
 func (r Radians) ToDeg() float32 {
-	return RadToDeg(float32(r))
+	return deg32(float32(r))
 }
 
 type Point struct {
 	YMerc int32
 	XMerc int32
-}
-
-func PointLatLng(lat float64, lng float64) Point {
-	return Point{
-		YMerc: merc_y(lat),
-		XMerc: merc_x(lng),
-	}
 }
 
 func (p Point) GeoLatLon() (lat float64, lng float64) {
@@ -63,7 +66,7 @@ type Header struct {
 	Format    uint16
 	Version   uint16
 	Blocksize uint16
-	Reserved1 uint16
+	Debug     uint16
 }
 
 type Frame interface {
@@ -72,5 +75,5 @@ type Frame interface {
 }
 
 type FrameReader interface {
-	Read(r io.Reader, header *Header) error
+	Read(r io.ReadSeeker, header *Header) error
 }

@@ -16,3 +16,7 @@ cover:
 .PHONY: example1
 example1:
 	go run ./cmd/sl2tab/ -count 20 "./testdata/sample-data-lowrance/Elite_4_Chirp/Chart 05_11_2018 [0].sl2"
+
+.PHONY: example2
+example2:
+	go run ./cmd/sl3tab/ -count 20 "./testdata/sample-data-lowrance/other/format3_version2.sl3"

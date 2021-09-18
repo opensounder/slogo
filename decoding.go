@@ -37,7 +37,7 @@ func ReadHeader(r io.Reader) (header Header, err error) {
 }
 
 type slDecoder struct {
-	r      io.Reader
+	r      io.ReadSeeker
 	header *Header
 }
 
@@ -51,7 +51,7 @@ func OpenDecoder(filename string) (*os.File, Decoder, error) {
 }
 
 //NewDecoder creates a new Decoder instance
-func NewDecoder(r io.Reader, header Header) Decoder {
+func NewDecoder(r io.ReadSeeker, header Header) Decoder {
 	return &slDecoder{r: r, header: &header}
 }
 

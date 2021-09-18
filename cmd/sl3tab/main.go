@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 	"text/tabwriter"
+	"time"
 
 	"github.com/opensounder/slogo"
 )
@@ -59,10 +60,11 @@ func main() {
 	last_point := slogo.Point{}
 
 	w := tabwriter.NewWriter(os.Stdout, 5, 4, 1, ' ', tabwriter.AlignRight|tabwriter.Debug)
-	record := []string{"Offset", "Time", "Diff", "Skipped", "Kts", "Kph", "Feet", "Meter", "COG", "Latitude", "Longitude", "URL", ""}
+	record := []string{"Offset", "Time", "Index", "Channel", "Skipped", "Kts", "Kph", "Feet", "Meter", "COG", "Longitude", "Latitude", "TS", ""}
 	fmt.Fprintln(w, strings.Join(record, "\t"))
 	var last_time uint32
-	var f slogo.FrameF2
+	var f slogo.FrameF3
+	packet := 0
 	for err == nil && (count == 0 || fc < count) {
 		err = d.Next(&f)
 		if err == io.EOF {
@@ -71,24 +73,30 @@ func main() {
 			fmt.Fprintf(os.Stderr, "error %v", err)
 			break
 		}
+		packet++
+		if packet == 1 {
+			fmt.Printf("Time of first packet: %v \n\n", time.Unix(int64(f.TimeStamp), 0))
+		}
+
 		p := f.Location()
 		lo, la := p.GeoLatLon()
 		if p != last_point { //only print if moved
 			if last_time == 0 {
 				last_time = f.Time1
 			}
-			_, err = fmt.Fprintf(w, "%d\t%d\t%d\t%d\t%.2f\t%.2f\t%.2f\t%.2f\t%.0f\t%f\t%f\t%s\t\n",
+			_, err = fmt.Fprintf(w, "%d\t%d\t%d\t%d\t%d\t%.2f\t%.2f\t%.2f\t%.2f\t%.0f\t%f\t%f\t%d\t\n",
 				f.Offset,
 				f.Time1,
-				f.Time1-last_time,
+				f.Frameindex,
+				f.Channel,
 				skipped, //skipped number of frames
 				f.GpsSpeed,
 				f.GpsSpeed.ToKph(),
 				f.WaterDepth,
 				f.WaterDepth.ToMeters(),
 				f.COG.ToDeg(),
-				la, lo,
-				p.ToGMapsURL(byte(zoom)),
+				lo, la,
+				f.TimeStamp,
 			)
 			check(err)
 			fc++

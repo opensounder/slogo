@@ -3,8 +3,26 @@ package slogo
 import (
 	"encoding/binary"
 	"log"
+	"math"
 	"os"
 )
+
+const float64Epsilon = 1e-9
+
+func almostEqual(a, b, epsilon float64) bool {
+	return math.Abs(a-b) <= epsilon
+}
+
+func almostEqual32(a, b, epsilon float32) bool {
+	return almostEqual(float64(a), float64(b), float64(epsilon))
+}
+
+func pointLatLng(lat float64, lng float64) Point {
+	return Point{
+		YMerc: merc_y(lat),
+		XMerc: merc_x(lng),
+	}
+}
 
 func logOffset(file *os.File) {
 	offset, err := file.Seek(0, os.SEEK_CUR)

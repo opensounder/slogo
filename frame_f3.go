@@ -6,7 +6,7 @@ import (
 	"io"
 )
 
-type FrameF3 struct {
+type FrameF3Info struct {
 	Offset        uint32 // I
 	TBD1          uint32
 	Framesize     uint16
@@ -34,6 +34,11 @@ type FrameF3 struct {
 	Time1         uint32
 }
 
+type FrameF3 struct {
+	FrameF3Info
+	Payload []byte
+}
+
 func (f *FrameF3) Location() Point {
 	return Point{f.XMerc, f.YMerc}
 }
@@ -42,26 +47,29 @@ func (f *FrameF3) Read(r io.ReadSeeker, header *Header) error {
 	if header.Format != 3 {
 		return fmt.Errorf("format %v files is not supported", header.Format)
 	}
-	err := binary.Read(r, binary.LittleEndian, f)
+	info := FrameF3Info{}
+	err := binary.Read(r, binary.LittleEndian, &info)
 	if err != nil {
-		return err // fmt.Errorf("error reading frame header: %w", err)
+		return err
 	}
+	f.FrameF3Info = info
 	payloadsize := f.Payloadsize
 	if header.Version == 1 && !has(f.Flags, F3) {
 		payloadsize = uint32(f.Framesize) - 168
 	}
 
 	if header.Version == 1 || (header.Version == 2 && f.Channel <= 5) {
-		extra := 168 - int64(binary.Size(f))
+		// TODO: what the hell are these extry bytes?
+		extra := 168 - int64(binary.Size(info))
 		r.Seek(extra, io.SeekCurrent)
 	}
 
-	// Read packet.
+	// Read payload.
 	payload := make([]byte, int(payloadsize))
 	_, err = r.Read(payload)
 	if err != nil {
 		return fmt.Errorf("error reading frame ping: %w", err)
 	}
-	// log.Printf("Packetsize: %d, Read: %d\n", frame.Packetsize, n)
+	f.Payload = payload
 	return err
 }

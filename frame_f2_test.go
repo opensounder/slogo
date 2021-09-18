@@ -11,17 +11,17 @@ func Test_FrameF2_First(t *testing.T) {
 	tests := []struct {
 		name     string
 		filename string
-		want     *FrameF2
+		want     *FrameF2Info
 		wantErr  bool
 	}{
 		// TODO: Add test cases.
 		{
 			"small", "./testdata/sample-data-lowrance/Elite_4_Chirp/small.sl2",
-			&FrameF2{
+			&FrameF2Info{
 				Offset:          8,
 				PreviousPrimary: 8,
 				Framesize:       3216,
-				Packetsize:      3072,
+				Payloadsize:     3072,
 				LowerLimit:      19.6, //feet
 				Frequency:       8,
 				WaterDepth:      6.622, //feet
@@ -57,7 +57,7 @@ func Test_FrameF2_First(t *testing.T) {
 			// logLongAtOffset(logfile, 8+140)
 			// log.Printf("COG in degrees %f", RadToDeg(got.COG))
 			// log.Printf("Altitude in meters %f", FeetToMeter(got.Altitude))
-			gots := fmt.Sprintf("%+v", &got)
+			gots := fmt.Sprintf("%+v", &got.FrameF2Info)
 			wants := fmt.Sprintf("%+v", tt.want)
 			if gots != wants {
 				t.Errorf("slDecoder.Decode() =\n %+v,\n want\n %+v", gots, wants)

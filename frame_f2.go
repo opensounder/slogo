@@ -6,7 +6,7 @@ import (
 	"io"
 )
 
-type FrameF2 struct {
+type FrameF2Info struct {
 	Offset            uint32
 	PreviousPrimary   uint32
 	PreviousSecondary uint32
@@ -17,7 +17,7 @@ type FrameF2 struct {
 	Framesize         uint16
 	LastFramesize     uint16
 	Channel           uint16
-	Packetsize        uint16
+	Payloadsize       uint16
 	Frameindex        uint32
 	UpperLimit        float32
 	LowerLimit        float32
@@ -40,6 +40,11 @@ type FrameF2 struct {
 	Time1             uint32
 }
 
+type FrameF2 struct {
+	FrameF2Info
+	Payload []byte
+}
+
 func (f *FrameF2) Location() Point {
 	return Point{f.YMerc, f.XMerc}
 }
@@ -48,20 +53,26 @@ func (f *FrameF2) Read(r io.ReadSeeker, header *Header) error {
 	if header.Format != 2 {
 		return fmt.Errorf("format %v files is not supported", header.Format)
 	}
-	err := binary.Read(r, binary.LittleEndian, f)
+	info := FrameF2Info{}
+	err := binary.Read(r, binary.LittleEndian, &info)
 	if err != nil {
 		// fmt.Printf("error %v. %+v", err, f)
 		return err // fmt.Errorf("error reading frame header: %w", err)
 	}
-
-	if f.Packetsize > header.Blocksize {
-		return fmt.Errorf("packetsize %v > %v", f.Packetsize, header.Blocksize)
+	f.FrameF2Info = info
+	if f.Payloadsize > header.Blocksize {
+		return fmt.Errorf("payloadsize %v > %v", f.Payloadsize, header.Blocksize)
 	}
-	ping := make([]byte, int(f.Packetsize))
-	_, err = r.Read(ping)
+	payloadsize := int(f.Payloadsize)
+	payload := make([]byte, payloadsize)
+	_, err = r.Read(payload)
 	if err != nil {
-		return fmt.Errorf("error reading frame ping: %w", err)
+		return fmt.Errorf("error reading frame payload: %w", err)
 	}
+	// if n != payloadsize {
+	// 	return fmt.Errorf("could not read payload")
+	// }
+	f.Payload = payload
 	// log.Printf("Packetsize: %d, Read: %d\n", frame.Packetsize, n)
 	return err
 }

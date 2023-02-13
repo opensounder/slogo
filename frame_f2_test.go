@@ -41,7 +41,7 @@ func Test_FrameF2_First(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			stream, d, err := OpenDecoder(tt.filename)
 			if err != nil {
-				t.Errorf("error %w opening file", err)
+				t.Errorf("error %+v opening file", err)
 				return
 			}
 			defer stream.Close()
